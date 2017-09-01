@@ -5,7 +5,7 @@
 
 int main () {
   // start GL context and O/S window using the GLFW helper library
-  if (!glfwInit ()) {
+  if (!glfwInit()) {
     fprintf (stderr, "ERROR: could not start GLFW3\n");
     return 1;
   }
@@ -16,21 +16,22 @@ int main () {
     glfwTerminate();
     return 1;
   }
+
   glfwMakeContextCurrent (window);
 
   // start GLEW extension handler
   glewExperimental = GL_TRUE;
-  glewInit ();
+  glewInit();
 
   // get version info
-  const GLubyte* renderer = glGetString (GL_RENDERER);
-  const GLubyte* version = glGetString (GL_VERSION);
-  printf ("Renderer: %s\n", renderer);
-  printf ("OpenGL version supported %s\n", version);
+  const GLubyte* renderer = glGetString(GL_RENDERER);
+  const GLubyte* version = glGetString(GL_VERSION);
+  printf("Renderer: %s\n", renderer);
+  printf("OpenGL version supported %s\n", version);
 
   // tell GL to only draw onto a pixel if the shape is closer to the viewer
-  glEnable (GL_DEPTH_TEST); // enable depth-testing
-  glDepthFunc (GL_LESS); // depth-testing interprets a smaller value as "closer"
+  glEnable(GL_DEPTH_TEST); // enable depth-testing
+  glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
   /* OTHER STUFF GOES HERE NEXT */
 
