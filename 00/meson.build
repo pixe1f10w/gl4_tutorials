@@ -1,0 +1,5 @@
+project('tutorial00', 'cpp')
+opengldep = dependency('opengl32')
+glfwdep = dependency('glfw3')
+glewdep = dependency('glew')
+executable('tutorial00', 'main.cpp', dependencies: [opengldep, glfwdep, glewdep])
