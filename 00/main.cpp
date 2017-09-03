@@ -45,53 +45,76 @@ int main () {
   glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
   // geometry definition
-  const GLfloat points[] = {
-    /*
-    .0f, .5f, .0f,
-    .5f, -.5f, .0f,
-    -.5f, -.5f, .0f
-    */
+  const GLfloat points1[] = {
     -.5f, .5f, .0f,
     .5f, .5f, .0f,
-    .5f, -.5f, .0f,
+    .5f, -.5f, .0f
+  };
 
+  // vertex buffer object
+  GLuint vbo1 = 0;
+  glGenBuffers(1, &vbo1);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo1);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(points1), points1, GL_STATIC_DRAW);
+
+  // vertex array object
+  GLuint vao1 = 0;
+  glGenVertexArrays(1, &vao1);
+  glBindVertexArray(vao1);
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo1);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+  const GLfloat points2[] = {
     .5f, -.5f, .0f,
     -.5f, -.5f, .0f,
     -.5f, .5f, .0f
   };
 
   // vertex buffer object
-  GLuint vbo = 0;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+  GLuint vbo2 = 0;
+  glGenBuffers(1, &vbo2);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo2);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(points2), points2, GL_STATIC_DRAW);
 
   // vertex array object
-  GLuint vao = 0;
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
+  GLuint vao2 = 0;
+  glGenVertexArrays(1, &vao2);
+  glBindVertexArray(vao2);
   glEnableVertexAttribArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo2);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
+
   // shaders loading
-  const char* vertex_shader = load_shader("../vertex.shader");
+  const char* vertex_shader = load_shader("../shader.vert");
 
   GLuint vs = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vs, 1, &vertex_shader, nullptr);
   glCompileShader(vs);
 
-  const char* fragment_shader = load_shader("../fragment.shader");
+  const char* fragment_shader1 = load_shader("../shader1.frag");
 
-  GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fs, 1, &fragment_shader, nullptr);
-  glCompileShader(fs);
+  GLuint fs1 = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fs1, 1, &fragment_shader1, nullptr);
+  glCompileShader(fs1);
+
+  const char* fragment_shader2 = load_shader("../shader2.frag");
+
+  GLuint fs2 = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fs2, 1, &fragment_shader2, nullptr);
+  glCompileShader(fs2);
 
   // shader program definition
-  GLuint shader_program = glCreateProgram();
-  glAttachShader(shader_program, fs);
-  glAttachShader(shader_program, vs);
-  glLinkProgram(shader_program);
+  GLuint shader_program1 = glCreateProgram();
+  glAttachShader(shader_program1, fs1);
+  glAttachShader(shader_program1, vs);
+  glLinkProgram(shader_program1);
+
+  GLuint shader_program2 = glCreateProgram();
+  glAttachShader(shader_program2, fs2);
+  glAttachShader(shader_program2, vs);
+  glLinkProgram(shader_program2);
 
   glClearColor(.6f, .6f, .8f, 1.0f);
 
@@ -100,9 +123,13 @@ int main () {
     // wipe the drawing surface
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(shader_program);
-    glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glUseProgram(shader_program1);
+    glBindVertexArray(vao1);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    glUseProgram(shader_program2);
+    glBindVertexArray(vao2);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glfwPollEvents();
     glfwSwapBuffers(window);
