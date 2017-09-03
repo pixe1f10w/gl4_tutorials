@@ -1,18 +1,18 @@
 #define GLEW_NO_GLU
 #include <GL/glew.h> // include GLEW and new version of GL on Windows
 #include <GLFW/glfw3.h> // GLFW helper library
-#include <stdio.h>
+#include <iostream>
 
 int main () {
   // start GL context and O/S window using the GLFW helper library
   if (!glfwInit()) {
-    fprintf (stderr, "ERROR: could not start GLFW3\n");
+    std::cerr << "ERROR: could not start GLFW3\n";
     return 1;
   }
 
-  GLFWwindow* window = glfwCreateWindow (640, 480, "Hello Triangle", NULL, NULL);
+  GLFWwindow* window = glfwCreateWindow (640, 480, "Hello Triangle", nullptr, nullptr);
   if (!window) {
-    fprintf (stderr, "ERROR: could not open window with GLFW3\n");
+    std::cerr << "ERROR: could not open window with GLFW3\n";
     glfwTerminate();
     return 1;
   }
@@ -26,8 +26,8 @@ int main () {
   // get version info
   const GLubyte* renderer = glGetString(GL_RENDERER);
   const GLubyte* version = glGetString(GL_VERSION);
-  printf("Renderer: %s\n", renderer);
-  printf("OpenGL version supported %s\n", version);
+  std::cout << "Renderer: " << renderer << std::endl;
+  std::cout << "OpenGL version supported " <<  version << std::endl;
 
   // tell GL to only draw onto a pixel if the shape is closer to the viewer
   glEnable(GL_DEPTH_TEST); // enable depth-testing
