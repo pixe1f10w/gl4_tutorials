@@ -1,7 +1,18 @@
 #define GLEW_NO_GLU
 #include <GL/glew.h> // include GLEW and new version of GL on Windows
 #include <GLFW/glfw3.h> // GLFW helper library
+#include <string>
 #include <iostream>
+#include <fstream>
+
+const char* load_shader(const std::string& filepath) {
+  std::ifstream ifs(filepath);
+  std::string shader;
+  shader.assign(std::istreambuf_iterator<char>(ifs),
+                std::istreambuf_iterator<char>());
+  std::cout << "loaded shader from '" << filepath << "':\n'''\n" << shader << "'''\n";
+  return shader.c_str();
+}
 
 int main () {
   // start GL context and O/S window using the GLFW helper library
@@ -17,7 +28,7 @@ int main () {
     return 1;
   }
 
-  glfwMakeContextCurrent (window);
+  glfwMakeContextCurrent(window);
 
   // start GLEW extension handler
   glewExperimental = GL_TRUE;
@@ -35,9 +46,18 @@ int main () {
 
   // geometry definition
   const GLfloat points[] = {
+    /*
     .0f, .5f, .0f,
     .5f, -.5f, .0f,
     -.5f, -.5f, .0f
+    */
+    -.5f, .5f, .0f,
+    .5f, .5f, .0f,
+    .5f, -.5f, .0f,
+
+    .5f, -.5f, .0f,
+    -.5f, -.5f, .0f,
+    -.5f, .5f, .0f
   };
 
   // vertex buffer object
@@ -54,24 +74,14 @@ int main () {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-  // shaders definitions
-  const char* vertex_shader =
-    "#version 400\n"
-    "in vec3 vp;"
-    "void main() {"
-    "  gl_Position = vec4(vp, 1.0);"
-    "}";
+  // shaders loading
+  const char* vertex_shader = load_shader("../vertex.shader");
 
   GLuint vs = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vs, 1, &vertex_shader, nullptr);
   glCompileShader(vs);
 
-  const char* fragment_shader =
-    "#version 400\n"
-    "out vec4 frag_colour;"
-    "void main() {"
-    "  frag_colour = vec4(0.5, 0.0, 0.5, 1.0);"
-    "}";
+  const char* fragment_shader = load_shader("../fragment.shader");
 
   GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fs, 1, &fragment_shader, nullptr);
@@ -83,6 +93,8 @@ int main () {
   glAttachShader(shader_program, vs);
   glLinkProgram(shader_program);
 
+  glClearColor(.6f, .6f, .8f, 1.0f);
+
   // draw loop
   while (!glfwWindowShouldClose(window)) {
     // wipe the drawing surface
@@ -90,7 +102,7 @@ int main () {
 
     glUseProgram(shader_program);
     glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     glfwPollEvents();
     glfwSwapBuffers(window);
