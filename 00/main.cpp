@@ -93,11 +93,17 @@ int main () {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
   // shaders loading
-  const char* vertex_shader = load_shader("../shader.vert");
+  const char* vertex_shader1 = load_shader("../shader1.vert");
 
-  GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vs, 1, &vertex_shader, nullptr);
-  glCompileShader(vs);
+  GLuint vs1 = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vs1, 1, &vertex_shader1, nullptr);
+  glCompileShader(vs1);
+
+  const char* vertex_shader2 = load_shader("../shader2.vert");
+
+  GLuint vs2 = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vs2, 1, &vertex_shader2, nullptr);
+  glCompileShader(vs2);
 
   const char* fragment_shader1 = load_shader("../shader1.frag");
 
@@ -114,12 +120,12 @@ int main () {
   // shader program definition
   GLuint shader_program1 = glCreateProgram();
   glAttachShader(shader_program1, fs1);
-  glAttachShader(shader_program1, vs);
+  glAttachShader(shader_program1, vs1);
   glLinkProgram(shader_program1);
 
   GLuint shader_program2 = glCreateProgram();
   glAttachShader(shader_program2, fs2);
-  glAttachShader(shader_program2, vs);
+  glAttachShader(shader_program2, vs2);
   glLinkProgram(shader_program2);
 
   glClearColor(.6f, .6f, .8f, 1.0f);
