@@ -85,7 +85,6 @@ int main () {
   glBindBuffer(GL_ARRAY_BUFFER, vbo2);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-
   // shaders loading
   const char* vertex_shader = load_shader("../shader.vert");
 
