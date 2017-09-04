@@ -21,7 +21,14 @@ int main () {
     return 1;
   }
 
-  GLFWwindow* window = glfwCreateWindow (640, 480, "Hello Triangle", nullptr, nullptr);
+#ifdef __APPLE__
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif
+
+  GLFWwindow* window = glfwCreateWindow(640, 480, "Hello Triangle", nullptr, nullptr);
   if (!window) {
     std::cerr << "ERROR: could not open window with GLFW3\n";
     glfwTerminate();
