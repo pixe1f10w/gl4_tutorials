@@ -12,6 +12,13 @@ int g_gl_width = 640;
 int g_gl_height = 480;
 bool g_gl_fullscreen = false;
 
+struct color {
+  GLfloat r = .0f;
+  GLfloat g = .0f;
+  GLfloat b = .0f;
+  GLfloat a = 1.0f;
+} g_color;
+
 // GLFW callbacks
 void glfw_error_callback(int error, const char* message) {
   g_log << tools::dumb_logger::message_type::error << message;
@@ -37,6 +44,24 @@ void update_fps_counter(GLFWwindow* window) {
     frame_count = 0;
   }
   frame_count++;
+}
+
+void update_color(GLFWwindow* window) {
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+    g_color.r = 1.0f;
+  } else {
+    g_color.r = .0f;
+  }
+  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+    g_color.g = 1.0f;
+  } else {
+    g_color.g = .0f;
+  }
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+    g_color.b = 1.0f;
+  } else {
+    g_color.b = .0f;
+  }
 }
 
 void log_gl_parameters() {
@@ -106,12 +131,10 @@ int main (int argc, char* argv[]) {
     return 1;
   }
 
-#ifdef __APPLE__
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#endif
 
   glfwWindowHint(GLFW_SAMPLES, 4);
   GLFWwindow* window;
@@ -148,44 +171,24 @@ int main (int argc, char* argv[]) {
   glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
   // geometry definition
-  const GLfloat points1[] = {
-    -.5f, .5f, .0f,
-    .5f, .5f, .0f,
-    .5f, -.5f, .0f
-  };
-
-  // vertex buffer object
-  GLuint vbo1 = 0;
-  glGenBuffers(1, &vbo1);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo1);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(points1), points1, GL_STATIC_DRAW);
-
-  // vertex array object
-  GLuint vao1 = 0;
-  glGenVertexArrays(1, &vao1);
-  glBindVertexArray(vao1);
-  glEnableVertexAttribArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo1);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-  const GLfloat points2[] = {
+  const GLfloat points[] = {
+    .0f, .5f, .0f,
     .5f, -.5f, .0f,
-    -.5f, -.5f, .0f,
-    -.5f, .5f, .0f
+    -.5f, -.5f, .0f
   };
 
   // vertex buffer object
-  GLuint vbo2 = 0;
-  glGenBuffers(1, &vbo2);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo2);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(points2), points2, GL_STATIC_DRAW);
+  GLuint vbo = 0;
+  glGenBuffers(1, &vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
 
   // vertex array object
-  GLuint vao2 = 0;
-  glGenVertexArrays(1, &vao2);
-  glBindVertexArray(vao2);
+  GLuint vao = 0;
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
   glEnableVertexAttribArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo2);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
   // shaders loading
@@ -195,45 +198,34 @@ int main (int argc, char* argv[]) {
   glShaderSource(vs, 1, &vertex_shader, nullptr);
   glCompileShader(vs);
 
-  const char* fragment_shader1 = load_shader("../shader1.frag");
+  const char* fragment_shader = load_shader("../shader.frag");
 
-  GLuint fs1 = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fs1, 1, &fragment_shader1, nullptr);
-  glCompileShader(fs1);
-
-  const char* fragment_shader2 = load_shader("../shader2.frag");
-
-  GLuint fs2 = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fs2, 1, &fragment_shader2, nullptr);
-  glCompileShader(fs2);
+  GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fs, 1, &fragment_shader, nullptr);
+  glCompileShader(fs);
 
   // shader program definition
-  GLuint shader_program1 = glCreateProgram();
-  glAttachShader(shader_program1, fs1);
-  glAttachShader(shader_program1, vs);
-  glLinkProgram(shader_program1);
+  GLuint shader_program = glCreateProgram();
+  glAttachShader(shader_program, fs);
+  glAttachShader(shader_program, vs);
+  glLinkProgram(shader_program);
 
-  GLuint shader_program2 = glCreateProgram();
-  glAttachShader(shader_program2, fs2);
-  glAttachShader(shader_program2, vs);
-  glLinkProgram(shader_program2);
+  GLint color_location = glGetUniformLocation(shader_program, "input_color");
 
   glClearColor(.6f, .6f, .8f, 1.0f);
 
   // draw loop
   while (!glfwWindowShouldClose(window)) {
     update_fps_counter(window);
+    update_color(window);
 
     // wipe the drawing surface
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, g_gl_width, g_gl_height);
 
-    glUseProgram(shader_program1);
-    glBindVertexArray(vao1);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glUseProgram(shader_program2);
-    glBindVertexArray(vao2);
+    glUseProgram(shader_program);
+    glUniform4f(color_location, g_color.r, g_color.g, g_color.b, g_color.a);
+    glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     glfwPollEvents();
