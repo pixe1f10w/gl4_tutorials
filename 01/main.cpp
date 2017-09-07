@@ -46,6 +46,22 @@ void update_fps_counter(GLFWwindow* window) {
   frame_count++;
 }
 
+void dump_shader_info_log(GLuint shader_index) {
+  int max_length = 2048;
+  int actual_length = 0;
+  char log[2048];
+  glGetShaderInfoLog(shader_index, max_length, &actual_length, log);
+  g_log << "shader info log for GL index " << std::to_string(shader_index) << ":\n" << log << "\n";
+}
+
+void dump_program_info_log(GLuint program) {
+  int max_length = 2048;
+  int actual_length = 0;
+  char log[2048];
+  glGetProgramInfoLog(program, max_length, &actual_length, log);
+  g_log << "program info log for GL index " << std::to_string(program) << ":\n" << log << "\n";
+}
+
 void update_color(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
     g_color.r = 1.0f;
@@ -198,17 +214,38 @@ int main (int argc, char* argv[]) {
   glShaderSource(vs, 1, &vertex_shader, nullptr);
   glCompileShader(vs);
 
+  int params = -1;
+  glGetShaderiv(vs, GL_COMPILE_STATUS, &params);
+  if (params != GL_TRUE) {
+    g_log << tools::dumb_logger::message_type::error << "GL shader index " << std::to_string(vs) << " did not compile\n";
+    dump_shader_info_log(vs);
+  }
+
   const char* fragment_shader = load_shader("../shader.frag");
 
   GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fs, 1, &fragment_shader, nullptr);
   glCompileShader(fs);
 
+  params = -1;
+  glGetShaderiv(vs, GL_COMPILE_STATUS, &params);
+  if (params != GL_TRUE) {
+    g_log << tools::dumb_logger::message_type::error << "GL shader index " << std::to_string(vs) << " did not compile\n";
+    dump_shader_info_log(vs);
+  }
+
   // shader program definition
   GLuint shader_program = glCreateProgram();
   glAttachShader(shader_program, fs);
   glAttachShader(shader_program, vs);
   glLinkProgram(shader_program);
+
+  params = -1;
+  glGetProgramiv(shader_program, GL_LINK_STATUS, &params);
+  if (params != GL_TRUE) {
+    g_log << tools::dumb_logger::message_type::error << "could not link shader program GL index " << std::to_string(shader_program) << "\n";
+    dump_program_info_log(shader_program);
+  }
 
   GLint color_location = glGetUniformLocation(shader_program, "input_color");
 
