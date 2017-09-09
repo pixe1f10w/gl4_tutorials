@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include "../tools/dumb_logger.hpp"
+#include "shader_manager.hpp"
 
 tools::dumb_logger g_log("unknown", true);
 int g_gl_width = 640;
@@ -136,18 +137,6 @@ void dump_entire_shader_program_info(GLuint program) {
   g_log << "-----------------------------\n";
 }
 
-bool is_program_valid(GLuint program) {
-  glValidateProgram(program);
-  int params = -1;
-  glGetProgramiv(program, GL_VALIDATE_STATUS, &params);
-  g_log << "program " << std::to_string(program) << " GL_VALIDATE_STATUS = " << std::to_string(params) << "\n";
-  if (params != GL_TRUE) {
-    dump_program_info_log(program);
-    return false;
-  }
-  return true;
-}
-
 void update_color(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
     g_color.r = 1.0f;
@@ -208,15 +197,6 @@ void log_gl_parameters() {
     g_log << pair.second << " == " << std::to_string(v).c_str() << "\n";
   }
   g_log << "----------------------------------------\n";
-}
-
-const char* load_shader(const std::string& filepath) {
-  std::ifstream ifs(filepath);
-  std::string shader;
-  shader.assign(std::istreambuf_iterator<char>(ifs),
-                std::istreambuf_iterator<char>());
-  g_log << "loaded_shader from '" << filepath.c_str() << "'\n'''\n" << shader.c_str() << "\n'''\n";
-  return shader.c_str();
 }
 
 int main (int argc, char* argv[]) {
@@ -294,49 +274,36 @@ int main (int argc, char* argv[]) {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
   // shaders loading
-  const char* vertex_shader = load_shader("../shader.vert");
-
-  GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vs, 1, &vertex_shader, nullptr);
-  glCompileShader(vs);
-
-  int params = -1;
-  glGetShaderiv(vs, GL_COMPILE_STATUS, &params);
-  if (params != GL_TRUE) {
-    g_log << tools::dumb_logger::message_type::error << "GL shader index " << std::to_string(vs) << " did not compile\n";
-    dump_shader_info_log(vs);
+  gl_shader_manager shader_manager;
+  gl_shader& vertex_shader = shader_manager.load_from_file("../shader.vert");
+  gl_shader& fragment_shader = shader_manager.load_from_file("../shader.frag");
+  /*
+  try {
+      vertex_shader = shader_manager.load_from_file("../shader.vert");
+      fragment_shader = shader_manager.load_from_file("../shader.frag");
+  } catch (std::runtime_error& e) {
+    g_log << tools::dumb_logger::message_type::error << e.what() << "\n";
+    dump_shader_info_log(vertex_shader.id());
   }
-
-  const char* fragment_shader = load_shader("../shader.frag");
-
-  GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fs, 1, &fragment_shader, nullptr);
-  glCompileShader(fs);
-
-  params = -1;
-  glGetShaderiv(vs, GL_COMPILE_STATUS, &params);
-  if (params != GL_TRUE) {
-    g_log << tools::dumb_logger::message_type::error << "GL shader index " << std::to_string(vs) << " did not compile\n";
-    dump_shader_info_log(vs);
-  }
+  */
 
   // shader program definition
-  GLuint shader_program = glCreateProgram();
-  glAttachShader(shader_program, fs);
-  glAttachShader(shader_program, vs);
-  glLinkProgram(shader_program);
-
-  params = -1;
-  glGetProgramiv(shader_program, GL_LINK_STATUS, &params);
-  if (params != GL_TRUE) {
-    g_log << tools::dumb_logger::message_type::error << "could not link shader program GL index " << std::to_string(shader_program) << "\n";
-    dump_program_info_log(shader_program);
+  gl_shader_program shader_program;
+  shader_program << fragment_shader;
+  shader_program << vertex_shader;
+  if (!shader_program.link()) {
+    g_log << tools::dumb_logger::message_type::error << "could not link shader program GL index " << std::to_string(shader_program.id()) << "\n";
+    dump_program_info_log(shader_program.id());
   } else {
-    dump_entire_shader_program_info(shader_program);
-    is_program_valid(shader_program);
+    dump_entire_shader_program_info(shader_program.id());
+    bool is_valid = shader_program.validate();
+    g_log << "program " << std::to_string(shader_program.id()) << " GL_VALIDATE_STATUS = " << std::to_string(is_valid) << "\n";
+    if (!is_valid) {
+        dump_program_info_log(shader_program.id());
+    }
   }
 
-  GLint color_location = glGetUniformLocation(shader_program, "input_color");
+  GLint color_location = glGetUniformLocation(shader_program.id(), "input_color");
 
   glClearColor(.6f, .6f, .8f, 1.0f);
 
@@ -349,7 +316,7 @@ int main (int argc, char* argv[]) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, g_gl_width, g_gl_height);
 
-    glUseProgram(shader_program);
+    glUseProgram(shader_program.id());
     glUniform4f(color_location, g_color.r, g_color.g, g_color.b, g_color.a);
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
