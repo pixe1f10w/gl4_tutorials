@@ -22,6 +22,25 @@ GLenum shader_kind_to_GLenum(const gl_shader_kind kind) {
     return kinds[kind];
 }
 
+const char* GL_type_to_string (GLenum type) {
+    switch(type) {
+        case GL_BOOL: return "bool";
+        case GL_INT: return "int";
+        case GL_FLOAT: return "float";
+        case GL_FLOAT_VEC2: return "vec2";
+        case GL_FLOAT_VEC3: return "vec3";
+        case GL_FLOAT_VEC4: return "vec4";
+        case GL_FLOAT_MAT2: return "mat2";
+        case GL_FLOAT_MAT3: return "mat3";
+        case GL_FLOAT_MAT4: return "mat4";
+        case GL_SAMPLER_2D: return "sampler2d";
+        case GL_SAMPLER_3D: return "sampler3d";
+        case GL_SAMPLER_CUBE: return "sampleCube";
+        case GL_SAMPLER_2D_SHADOW: return "sampler2DShadow";
+        default: return "other";
+    }
+}
+
 class gl_shader {
     public:
 
@@ -45,6 +64,14 @@ class gl_shader {
         glGetShaderiv(m_id, GL_COMPILE_STATUS, &result);
 
         return result == GL_TRUE;
+    }
+
+    void dump_info_log(tools::dumb_logger& logger) const {
+        int max_length = 2048;
+        int actual_length = 0;
+        char log[2048];
+        glGetShaderInfoLog(m_id, max_length, &actual_length, log);
+        logger << "shader info log for GL index " << std::to_string(m_id) << ":\n" << log << "\n";
     }
 
     private:
@@ -87,6 +114,69 @@ class gl_shader_program {
         return result == GL_TRUE;
     }
 
+    void dump_info_log(tools::dumb_logger& logger) const {
+        int max_length = 2048;
+        int actual_length = 0;
+        char log[2048];
+        glGetProgramInfoLog(m_id, max_length, &actual_length, log);
+        logger << "program info log for GL index " << std::to_string(m_id) << ":\n" << log << "\n";
+    }
+
+    void dump_details(tools::dumb_logger& logger) const {
+        logger << "-----------------------------\ninformation for shader program " << std::to_string(m_id) << ":\n";
+        int params = -1;
+        glGetProgramiv(m_id, GL_LINK_STATUS, &params);
+        logger << "GL_LINK_STATUS = " << std::to_string(params) << "\n";
+
+        glGetProgramiv(m_id, GL_ATTACHED_SHADERS, &params);
+        logger << "GL_ATTACHED_SHADERS = " << std::to_string(params) << "\n";
+
+        glGetProgramiv(m_id, GL_ACTIVE_ATTRIBUTES, &params);
+        logger << "GL_ACTIVE_ATTRIBUTES = " << std::to_string(params) << "\n";
+        for (GLuint i = 0; i < (GLuint)params; i++) {
+            char name[64];
+            int max_length = 64;
+            int actual_length = 0;
+            int size = 0;
+            GLenum type;
+            glGetActiveAttrib(m_id, i, max_length, &actual_length, &size, &type, name);
+            if (size > 1) {
+                for (int j = 0; j < size; j++) {
+                    char long_name[64];
+                    sprintf(long_name, "%s[%i]", name, j);
+                    int location = glGetAttribLocation(m_id, long_name);
+                    logger << " " << std::to_string(i) << ") type: " << GL_type_to_string(type) << " name: " << long_name << " location: " << std::to_string(location) << "\n";
+                }
+            } else {
+                  int location = glGetAttribLocation(m_id, name);
+                  logger << " " << std::to_string(i) << ") type: " << GL_type_to_string(type) << " name: " << name << " location: " << std::to_string(location) << "\n";
+            }
+        }
+
+        glGetProgramiv(m_id, GL_ACTIVE_UNIFORMS, &params);
+        logger << "GL_ACTIVE_UNIFORMS = " << std::to_string(params) << "\n";
+        for (GLuint i = 0; i < (GLuint)params; i++) {
+            char name[64];
+            int max_length = 64;
+            int actual_length = 0;
+            int size = 0;
+            GLenum type;
+            glGetActiveUniform(m_id, i, max_length, &actual_length, &size, &type, name);
+            if (size > 1) {
+                for (int j = 0; j < size; j++) {
+                    char long_name[64];
+                    sprintf(long_name, "%s[%i]", name, j);
+                    int location = glGetUniformLocation(m_id, long_name);
+                    logger << " " << std::to_string(i) << ") type: " << GL_type_to_string(type) << " name: " << long_name << " location: " << std::to_string(location) << "\n";
+                }
+            } else {
+                int location = glGetUniformLocation(m_id, name);
+                logger << " " << std::to_string(i) << ") type: " << GL_type_to_string(type) << " name: " << name << " location: " << std::to_string(location) << "\n";
+            }
+        }
+        logger << "-----------------------------\n";
+    }
+
     private:
 
     GLuint m_id;
@@ -95,27 +185,35 @@ class gl_shader_program {
 class gl_shader_manager {
     public:
 
-    gl_shader_manager() {}
+    gl_shader_manager(tools::dumb_logger& logger):
+        m_logger(logger) {}
 
-    gl_shader& load_from_file(const std::string& filepath) {
+    gl_shader& load_from_file(const std::string& filepath, const std::string& alias = "") {
         std::ifstream ifs(filepath);
         std::string source;
         source.assign(std::istreambuf_iterator<char>(ifs),
                       std::istreambuf_iterator<char>());
-        std::size_t hash = std::hash<std::string>{}(source);
-        if (m_container.count(hash)) {
-            return m_container.at(hash);
+
+        const std::string& key = alias.empty() ? source : alias;
+        if (m_container.count(key)) {
+            return m_container.at(key);
         }
-        //g_log << "loaded_shader from '" << filepath.c_str() << "'\n'''\n" << shader.c_str() << "\n'''\n";
+
+        m_logger << "loaded_shader from '" << filepath.c_str() << "'\n'''\n" << source << "\n'''\n";
+
         gl_shader_kind kind = deduce_shader_kind(filepath);
         if (kind == gl_shader_kind::unknown) {
             throw std::runtime_error("unsupported shader filename");
         }
+
         gl_shader shader(shader_kind_to_GLenum(kind), source);
         if (shader.compile()) {
-            m_container.emplace(hash, shader);
-            return m_container.at(hash);
+            m_logger << "shader " << std::to_string(shader.id()) << " compiled successfully\n";
+            m_container.emplace(key, shader);
+            return m_container.at(key);
         }
+
+        shader.dump_info_log(m_logger);
         throw std::runtime_error{"unable to compile shader idx " + std::to_string(shader.id())};
     }
 
@@ -137,5 +235,6 @@ class gl_shader_manager {
         return gl_shader_kind::unknown;
     }
 
-    std::unordered_map<std::size_t, gl_shader> m_container;
+    std::unordered_map<std::string, gl_shader> m_container;
+    tools::dumb_logger& m_logger;
 };

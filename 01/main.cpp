@@ -47,96 +47,6 @@ void update_fps_counter(GLFWwindow* window) {
   frame_count++;
 }
 
-void dump_shader_info_log(GLuint shader_index) {
-  int max_length = 2048;
-  int actual_length = 0;
-  char log[2048];
-  glGetShaderInfoLog(shader_index, max_length, &actual_length, log);
-  g_log << "shader info log for GL index " << std::to_string(shader_index) << ":\n" << log << "\n";
-}
-
-void dump_program_info_log(GLuint program) {
-  int max_length = 2048;
-  int actual_length = 0;
-  char log[2048];
-  glGetProgramInfoLog(program, max_length, &actual_length, log);
-  g_log << "program info log for GL index " << std::to_string(program) << ":\n" << log << "\n";
-}
-
-const char* GL_type_to_string (GLenum type) {
-  switch(type) {
-    case GL_BOOL: return "bool";
-    case GL_INT: return "int";
-    case GL_FLOAT: return "float";
-    case GL_FLOAT_VEC2: return "vec2";
-    case GL_FLOAT_VEC3: return "vec3";
-    case GL_FLOAT_VEC4: return "vec4";
-    case GL_FLOAT_MAT2: return "mat2";
-    case GL_FLOAT_MAT3: return "mat3";
-    case GL_FLOAT_MAT4: return "mat4";
-    case GL_SAMPLER_2D: return "sampler2d";
-    case GL_SAMPLER_3D: return "sampler3d";
-    case GL_SAMPLER_CUBE: return "sampleCube";
-    case GL_SAMPLER_2D_SHADOW: return "sampler2DShadow";
-    default: return "other";
-  }
-}
-
-void dump_entire_shader_program_info(GLuint program) {
-  g_log << "-----------------------------\ninformation for shader program " << std::to_string(program) << ":\n";
-  int params = -1;
-  glGetProgramiv(program, GL_LINK_STATUS, &params);
-  g_log << "GL_LINK_STATUS = " << std::to_string(params) << "\n";
-
-  glGetProgramiv(program, GL_ATTACHED_SHADERS, &params);
-  g_log << "GL_ATTACHED_SHADERS = " << std::to_string(params) << "\n";
-
-  glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES, &params);
-  g_log << "GL_ACTIVE_ATTRIBUTES = " << std::to_string(params) << "\n";
-  for (GLuint i = 0; i < (GLuint)params; i++) {
-    char name[64];
-    int max_length = 64;
-    int actual_length = 0;
-    int size = 0;
-    GLenum type;
-    glGetActiveAttrib(program, i, max_length, &actual_length, &size, &type, name);
-    if (size > 1) {
-      for (int j = 0; j < size; j++) {
-        char long_name[64];
-        sprintf(long_name, "%s[%i]", name, j);
-        int location = glGetAttribLocation(program, long_name);
-        g_log << " " << std::to_string(i) << ") type: " << GL_type_to_string(type) << " name: " << long_name << " location: " << std::to_string(location) << "\n";
-      }
-    } else {
-      int location = glGetAttribLocation(program, name);
-      g_log << " " << std::to_string(i) << ") type: " << GL_type_to_string(type) << " name: " << name << " location: " << std::to_string(location) << "\n";
-    }
-  }
-
-  glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &params);
-  g_log << "GL_ACTIVE_UNIFORMS = " << std::to_string(params) << "\n";
-  for (GLuint i = 0; i < (GLuint)params; i++) {
-    char name[64];
-    int max_length = 64;
-    int actual_length = 0;
-    int size = 0;
-    GLenum type;
-    glGetActiveUniform(program, i, max_length, &actual_length, &size, &type, name);
-    if (size > 1) {
-      for (int j = 0; j < size; j++) {
-        char long_name[64];
-        sprintf(long_name, "%s[%i]", name, j);
-        int location = glGetUniformLocation(program, long_name);
-        g_log << " " << std::to_string(i) << ") type: " << GL_type_to_string(type) << " name: " << long_name << " location: " << std::to_string(location) << "\n";
-      }
-    } else {
-      int location = glGetUniformLocation(program, name);
-      g_log << " " << std::to_string(i) << ") type: " << GL_type_to_string(type) << " name: " << name << " location: " << std::to_string(location) << "\n";
-    }
-  }
-  g_log << "-----------------------------\n";
-}
-
 void update_color(GLFWwindow* window) {
   if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
     g_color.r = 1.0f;
@@ -232,7 +142,7 @@ int main (int argc, char* argv[]) {
   }
 
   if (!window) {
-    g_log << tools::dumb_logger::message_type::error << "ERROR: could not open window with GLFW3\n";
+    g_log << tools::dumb_logger::message_type::error << "could not open window with GLFW3\n";
     glfwTerminate();
     return 1;
   }
@@ -274,32 +184,24 @@ int main (int argc, char* argv[]) {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
   // shaders loading
-  gl_shader_manager shader_manager;
-  gl_shader& vertex_shader = shader_manager.load_from_file("../shader.vert");
-  gl_shader& fragment_shader = shader_manager.load_from_file("../shader.frag");
-  /*
-  try {
-      vertex_shader = shader_manager.load_from_file("../shader.vert");
-      fragment_shader = shader_manager.load_from_file("../shader.frag");
-  } catch (std::runtime_error& e) {
-    g_log << tools::dumb_logger::message_type::error << e.what() << "\n";
-    dump_shader_info_log(vertex_shader.id());
-  }
-  */
-
-  // shader program definition
+  gl_shader_manager shader_manager(g_log);
   gl_shader_program shader_program;
-  shader_program << fragment_shader;
-  shader_program << vertex_shader;
+  try {
+      shader_program << shader_manager.load_from_file("../shader.vert");
+      shader_program << shader_manager.load_from_file("../shader.frag");
+  } catch (std::runtime_error& e) {
+      g_log << tools::dumb_logger::message_type::error << e.what() << "\n";
+  }
+
   if (!shader_program.link()) {
     g_log << tools::dumb_logger::message_type::error << "could not link shader program GL index " << std::to_string(shader_program.id()) << "\n";
-    dump_program_info_log(shader_program.id());
+    shader_program.dump_info_log(g_log);
   } else {
-    dump_entire_shader_program_info(shader_program.id());
+    shader_program.dump_details(g_log);
     bool is_valid = shader_program.validate();
     g_log << "program " << std::to_string(shader_program.id()) << " GL_VALIDATE_STATUS = " << std::to_string(is_valid) << "\n";
     if (!is_valid) {
-        dump_program_info_log(shader_program.id());
+        shader_program.dump_info_log(g_log);
     }
   }
 
