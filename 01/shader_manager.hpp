@@ -114,6 +114,10 @@ class gl_shader_program {
         return result == GL_TRUE;
     }
 
+    GLint get_uniform_location(const std::string& name) const {
+        return glGetUniformLocation(m_id, name.c_str());
+    }
+
     void dump_info_log(tools::dumb_logger& logger) const {
         int max_length = 2048;
         int actual_length = 0;
@@ -182,13 +186,13 @@ class gl_shader_program {
     GLuint m_id;
 };
 
-class gl_shader_manager {
+class gl_shader_loader {
     public:
 
-    gl_shader_manager(tools::dumb_logger& logger):
+    gl_shader_loader(tools::dumb_logger& logger):
         m_logger(logger) {}
 
-    gl_shader& load_from_file(const std::string& filepath, const std::string& alias = "") {
+    gl_shader& from_file(const std::string& filepath, const std::string& alias = "") {
         std::ifstream ifs(filepath);
         std::string source;
         source.assign(std::istreambuf_iterator<char>(ifs),
@@ -217,6 +221,10 @@ class gl_shader_manager {
         throw std::runtime_error{"unable to compile shader idx " + std::to_string(shader.id())};
     }
 
+    gl_shader& operator()(const std::string& filepath) {
+        return from_file(filepath);
+    }
+
     private:
 
     gl_shader_kind deduce_shader_kind(const std::string& filepath) {
@@ -225,7 +233,7 @@ class gl_shader_manager {
             {"vert", gl_shader_kind::vertex},
             // TODO: extend
         };
-        std::string::size_type dot_index = filepath.find_last_of(".");
+        std::string::size_type dot_index = filepath.find_last_of("."); // TODO: better solution
         if (dot_index != std::string::npos) {
             const std::string& extension = filepath.substr(dot_index + 1);
             if (kinds.count(extension)) {

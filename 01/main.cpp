@@ -184,11 +184,11 @@ int main (int argc, char* argv[]) {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
   // shaders loading
-  gl_shader_manager shader_manager(g_log);
+  gl_shader_loader shader_loader(g_log);
   gl_shader_program shader_program;
   try {
-      shader_program << shader_manager.load_from_file("../shader.vert");
-      shader_program << shader_manager.load_from_file("../shader.frag");
+      shader_program << shader_loader("../shader.vert");
+      shader_program << shader_loader("../shader.frag");
   } catch (std::runtime_error& e) {
       g_log << tools::dumb_logger::message_type::error << e.what() << "\n";
   }
@@ -205,7 +205,7 @@ int main (int argc, char* argv[]) {
     }
   }
 
-  GLint color_location = glGetUniformLocation(shader_program.id(), "input_color");
+  GLint color_location = shader_program.get_uniform_location("input_color");
 
   glClearColor(.6f, .6f, .8f, 1.0f);
 
