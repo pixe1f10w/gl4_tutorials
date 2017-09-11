@@ -13,13 +13,6 @@ int g_gl_width = 640;
 int g_gl_height = 480;
 bool g_gl_fullscreen = false;
 
-struct color {
-  GLfloat r = .0f;
-  GLfloat g = .0f;
-  GLfloat b = .0f;
-  GLfloat a = 1.0f;
-} g_color;
-
 // GLFW callbacks
 void glfw_error_callback(int error, const char* message) {
   g_log << tools::dumb_logger::message_type::error << message;
@@ -45,24 +38,6 @@ void update_fps_counter(GLFWwindow* window) {
     frame_count = 0;
   }
   frame_count++;
-}
-
-void update_color(GLFWwindow* window) {
-  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-    g_color.r = 1.0f;
-  } else {
-    g_color.r = .0f;
-  }
-  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-    g_color.g = 1.0f;
-  } else {
-    g_color.g = .0f;
-  }
-  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-    g_color.b = 1.0f;
-  } else {
-    g_color.b = .0f;
-  }
 }
 
 void log_gl_parameters() {
@@ -123,10 +98,12 @@ int main (int argc, char* argv[]) {
     return 1;
   }
 
+#ifdef __APPLE__
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif
 
   glfwWindowHint(GLFW_SAMPLES, 4);
   GLFWwindow* window;
@@ -169,19 +146,34 @@ int main (int argc, char* argv[]) {
     -.5f, -.5f, .0f
   };
 
+  const GLfloat colors[] = {
+      1.0f, .0f, .0f,
+      .0f, 1.0f, .0f,
+      .0f, .0f, 1.0f
+  };
+
   // vertex buffer object
-  GLuint vbo = 0;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  GLuint points_vbo = 0;
+  glGenBuffers(1, &points_vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+
+  GLuint colors_vbo = 0;
+  glGenBuffers(1, &colors_vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
 
   // vertex array object
   GLuint vao = 0;
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
-  glEnableVertexAttribArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+  glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
 
   // shaders loading
   gl_shader_loader shader_loader(g_log);
@@ -192,6 +184,9 @@ int main (int argc, char* argv[]) {
   } catch (std::runtime_error& e) {
       g_log << tools::dumb_logger::message_type::error << e.what() << "\n";
   }
+
+  glBindAttribLocation(shader_program.id(), 0, "vertex_position");
+  glBindAttribLocation(shader_program.id(), 1, "vertex_color");
 
   if (!shader_program.link()) {
     g_log << tools::dumb_logger::message_type::error << "could not link shader program GL index " << std::to_string(shader_program.id()) << "\n";
@@ -205,21 +200,17 @@ int main (int argc, char* argv[]) {
     }
   }
 
-  GLint color_location = shader_program.get_uniform_location("input_color");
-
   glClearColor(.6f, .6f, .8f, 1.0f);
 
   // draw loop
   while (!glfwWindowShouldClose(window)) {
     update_fps_counter(window);
-    update_color(window);
 
     // wipe the drawing surface
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, g_gl_width, g_gl_height);
 
-    glUseProgram(shader_program.id());
-    glUniform4f(color_location, g_color.r, g_color.g, g_color.b, g_color.a);
+    shader_program.use();
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 

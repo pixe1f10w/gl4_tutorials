@@ -95,16 +95,20 @@ class gl_shader_program {
         program.attach(shader);
     }
 
+    GLuint id() const {
+        return m_id;
+    }
+
+    void use() const {
+        glUseProgram(m_id);
+    }
+
     bool link() {
         glLinkProgram(m_id);
         int result = -1;
         glGetProgramiv(m_id, GL_LINK_STATUS, &result);
 
         return result == GL_TRUE;
-    }
-
-    GLuint id() const {
-        return m_id;
     }
 
     bool validate() const {
