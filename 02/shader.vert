@@ -1,6 +1,8 @@
-#version 440
-layout(location = 0) in vec3 vertex_position;
-layout(location = 1) in vec3 vertex_color;
+#version 330
+
+in vec3 vertex_position;
+in vec3 vertex_color;
+
 out vec3 color;
 
 void main() {
