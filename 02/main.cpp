@@ -201,6 +201,9 @@ int main (int argc, char* argv[]) {
   }
 
   glClearColor(.6f, .6f, .8f, 1.0f);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  glFrontFace(GL_CW);
 
   // draw loop
   while (!glfwWindowShouldClose(window)) {
