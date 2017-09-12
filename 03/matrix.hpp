@@ -3,8 +3,12 @@
 #include <array>
 #include <math.h>
 
+namespace matrix {
+
 template <typename value_type, size_t size>
 class matrix {
+protected:
+
     static const size_t dimensions = size;
 
     using data_type = std::array<value_type, dimensions * dimensions>;
@@ -44,49 +48,10 @@ public:
         }
     }
 
-    //TODO: template-based
-    void translate(const value_type x, const value_type y, const value_type z) {
-        identity();
-        m_data[12] = x;
-        m_data[13] = y;
-        m_data[14] = z;
-    }
-
-    void scale(const value_type x, const value_type y, const value_type z) {
-        identity();
-        m_data[0] = x;
-        m_data[5] = y;
-        m_data[10] = z;
-    }
-
-    void rotate_x(const value_type value) {
-        identity();
-        m_data[5] = cos(value);
-        m_data[6] = sin(value);
-        m_data[9] = -sin(value);
-        m_data[10] = cos(value);
-    }
-
-    void rotate_y(const value_type value) {
-        identity();
-        m_data[0] = cos(value);
-        m_data[2] = -sin(value);
-        m_data[8] = sin(value);
-        m_data[10] = cos(value);
-    }
-
-    void rotate_z(const value_type value) {
-        identity();
-        m_data[0] = cos(value);
-        m_data[1] = sin(value);
-        m_data[4] = -sin(value);
-        m_data[5] = cos(value);
-    }
-
     const matrix& operator*(const matrix& other) const {
         data_type data;
+        data.fill(.0f);
 
-        //TODO: seems buggy. column first?
         for (size_t row = 0; row < dimensions; row++) {
             for (size_t col = 0; col < dimensions; col++) {
                 for (size_t i = 0; i < dimensions; i++) {
@@ -94,7 +59,7 @@ public:
                 }
             }
         }
-        return matrix(data);
+        return std::move(matrix(data));
     }
 
     const data_type& data() const {
@@ -106,4 +71,63 @@ public:
     }
 };
 
+using mat2 = matrix<float, 2>;
+using mat3 = matrix<float, 3>;
 using mat4 = matrix<float, 4>;
+
+//TODO: template-based
+class translate : public mat4 {
+public:
+    translate(const float x, const float y, const float z):
+        mat4() {
+        m_data[12] = x;
+        m_data[13] = y;
+        m_data[14] = z;
+    }
+};
+
+class scale : public mat4 {
+public:
+    scale(const float x, const float y, const float z):
+        mat4() {
+        m_data[0] = x;
+        m_data[5] = y;
+        m_data[10] = z;
+    }
+};
+
+class rotate_x : public mat4 {
+public:
+    rotate_x(const float value):
+        mat4() {
+        m_data[5] = cos(value);
+        m_data[6] = sin(value);
+        m_data[9] = -sin(value);
+        m_data[10] = cos(value);
+    }
+};
+
+class rotate_y : public mat4 {
+public:
+    rotate_y(const float value):
+        mat4() {
+        m_data[0] = cos(value);
+        m_data[2] = -sin(value);
+        m_data[8] = sin(value);
+        m_data[10] = cos(value);
+    }
+};
+
+class rotate_z : public mat4 {
+public:
+    rotate_z(const float value):
+        mat4() {
+        m_data[0] = cos(value);
+        m_data[1] = sin(value);
+        m_data[4] = -sin(value);
+        m_data[5] = cos(value);
+    }
+};
+
+} // ns matrix
+

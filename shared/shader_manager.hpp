@@ -122,6 +122,10 @@ class gl_shader_program {
         return glGetUniformLocation(m_id, name.c_str());
     }
 
+    void bind_attribute_location(GLint id, const std::string& name) const {
+        glBindAttribLocation(m_id, id, name.c_str());
+    }
+
     void dump_info_log(tools::dumb_logger& logger) const {
         int max_length = 2048;
         int actual_length = 0;

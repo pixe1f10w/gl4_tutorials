@@ -141,8 +141,6 @@ int main (int argc, char* argv[]) {
   glEnable(GL_DEPTH_TEST); // enable depth-testing
   glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
-  mat4 matrix;
-
   // geometry definition
   const GLfloat points[] = {
     .0f, .5f, .0f,
@@ -189,8 +187,8 @@ int main (int argc, char* argv[]) {
       g_log << tools::dumb_logger::message_type::error << e.what() << "\n";
   }
 
-  glBindAttribLocation(shader_program.id(), 0, "vertex_position");
-  glBindAttribLocation(shader_program.id(), 1, "vertex_color");
+  shader_program.bind_attribute_location(0, "vertex_position");
+  shader_program.bind_attribute_location(1, "vertex_color");
 
   if (!shader_program.link()) {
     g_log << tools::dumb_logger::message_type::error << "could not link shader program GL index " << std::to_string(shader_program.id()) << "\n";
@@ -231,9 +229,10 @@ int main (int argc, char* argv[]) {
 
     // update matrix
     last_position += elapsed_seconds * speed;
-    matrix.rotate_z(last_position);
-    //matrix.translate(last_position, 0, 0);
-    //matrix.scale(1, last_position, 1);
+    auto matrix = matrix::rotate_z(last_position)
+                * matrix::rotate_x(last_position)
+                * matrix::translate(last_position, 0, 0)
+                * matrix::scale(last_position, last_position, 1);
 
     // wipe the drawing surface
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
