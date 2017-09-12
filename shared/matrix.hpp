@@ -2,6 +2,7 @@
 
 #include <array>
 #include <math.h>
+#include "vector.hpp"
 
 namespace matrix {
 
@@ -62,6 +63,18 @@ public:
         return std::move(matrix(data));
     }
 
+    const vector::vector<value_type, size>& operator*(const vector::vector<value_type, size>& vec) const {
+        typename vector::vector<value_type, size>::data_type data;
+        data.fill(.0f);
+
+        for (size_t row = 0; row < dimensions; row++) {
+            for (size_t col = 0; col < dimensions; col++) {
+                data[col] += m_data.at(to_index(row, col)) * vec.data().at(col);
+            }
+        }
+        return std::move(vector::vector<value_type, size>(data));
+    }
+
     const data_type& data() const {
         return m_data;
     }
@@ -84,6 +97,12 @@ public:
         m_data[13] = y;
         m_data[14] = z;
     }
+    translate(const vector::vec3& vec):
+        mat4() {
+        m_data[12] = vec.data()[0];
+        m_data[13] = vec.data()[1];
+        m_data[14] = vec.data()[2];
+    }
 };
 
 class scale : public mat4 {
@@ -93,6 +112,12 @@ public:
         m_data[0] = x;
         m_data[5] = y;
         m_data[10] = z;
+    }
+    scale(const vector::vec3& vec):
+        mat4() {
+        m_data[0] = vec.data()[0];
+        m_data[5] = vec.data()[1];
+        m_data[10] = vec.data()[2];
     }
 };
 

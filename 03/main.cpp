@@ -5,7 +5,8 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "matrix.hpp"
+#include "../shared/vector.hpp"
+#include "../shared/matrix.hpp"
 #include "../tools/dumb_logger.hpp"
 #include "../shared/shader_manager.hpp"
 #include <math.h>
@@ -231,8 +232,8 @@ int main (int argc, char* argv[]) {
     last_position += elapsed_seconds * speed;
     auto matrix = matrix::rotate_z(last_position)
                 * matrix::rotate_x(last_position)
-                * matrix::translate(last_position, 0, 0)
-                * matrix::scale(last_position, last_position, 1);
+                * matrix::translate(vector::vec3({last_position, 0, 0}))
+                * matrix::scale(vector::vec3({last_position, last_position, 1}));
 
     // wipe the drawing surface
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
