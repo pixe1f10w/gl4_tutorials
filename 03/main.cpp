@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include "matrix.hpp"
 #include "../tools/dumb_logger.hpp"
 #include "../shared/shader_manager.hpp"
 #include <math.h>
@@ -140,12 +141,7 @@ int main (int argc, char* argv[]) {
   glEnable(GL_DEPTH_TEST); // enable depth-testing
   glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
-  GLfloat matrix[] = {
-      1.0f, .0f, .0f, .0f,
-      .0f, 1.0f, .0f, .0f,
-      .0f, .0f, 1.0f, .0f,
-      .5f, .5f, .0f, 1.0f
-  };
+  mat4 matrix;
 
   // geometry definition
   const GLfloat points[] = {
@@ -211,6 +207,7 @@ int main (int argc, char* argv[]) {
   int matrix_location = shader_program.get_uniform_location("matrix");
 
   glClearColor(.6f, .6f, .8f, 1.0f);
+
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   glFrontFace(GL_CW);
@@ -233,14 +230,17 @@ int main (int argc, char* argv[]) {
     }
 
     // update matrix
-    last_position = matrix[12] = matrix[13] = elapsed_seconds * speed + last_position;
+    last_position += elapsed_seconds * speed;
+    matrix.rotate_z(last_position);
+    //matrix.translate(last_position, 0, 0);
+    //matrix.scale(1, last_position, 1);
 
     // wipe the drawing surface
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, g_gl_width, g_gl_height);
 
     shader_program.use();
-    glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix);
+    glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix.raw_data());
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
