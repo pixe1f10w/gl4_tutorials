@@ -7,6 +7,7 @@
 #include <fstream>
 #include "../tools/dumb_logger.hpp"
 #include "../shared/shader_manager.hpp"
+#include <math.h>
 
 tools::dumb_logger g_log("unknown", true);
 int g_gl_width = 640;
@@ -139,7 +140,7 @@ int main (int argc, char* argv[]) {
   glEnable(GL_DEPTH_TEST); // enable depth-testing
   glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 
-  const GLfloat matrix[] = {
+  GLfloat matrix[] = {
       1.0f, .0f, .0f, .0f,
       .0f, 1.0f, .0f, .0f,
       .0f, .0f, 1.0f, .0f,
@@ -214,9 +215,25 @@ int main (int argc, char* argv[]) {
   glCullFace(GL_BACK);
   glFrontFace(GL_CW);
 
+  float speed = 1.0f;
+  float last_position = .0f;
+
   // draw loop
   while (!glfwWindowShouldClose(window)) {
     update_fps_counter(window);
+
+    static double previous_seconds = glfwGetTime();
+    double current_seconds = glfwGetTime();
+    double elapsed_seconds =  current_seconds - previous_seconds;
+    previous_seconds = current_seconds;
+
+    // reversing direction on borders
+    if (fabs(last_position) > 1.0f) {
+        speed = -speed;
+    }
+
+    // update matrix
+    last_position = matrix[12] = matrix[13] = elapsed_seconds * speed + last_position;
 
     // wipe the drawing surface
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
