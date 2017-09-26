@@ -6,13 +6,139 @@
 
 namespace matrix {
 
+template <typename value_type, size_t size> class matrix;
+
+template<size_t dimensions, typename value_type>
+struct determinator {
+    static value_type compute(const matrix<value_type, dimensions>& src) {
+        value_type result = 0;
+        for (size_t i = dimensions; i--;) {
+            result += src.m_data.at(i) * src.cofactor(0, i);
+        }
+        return result;
+    }
+};
+
+template<typename value_type>
+struct determinator<1, value_type> {
+    static value_type compute(const matrix<value_type, 1>& src) {
+        return src.m_data.at(0);
+    }
+};
+
 template <typename value_type, size_t size>
 class matrix {
-protected:
+public:
 
     static const size_t dimensions = size;
-
     using data_type = std::array<value_type, dimensions * dimensions>;
+
+    matrix():
+        m_main_diagonal_indices(get_main_diagonal_indices()) {
+        identity();
+    }
+
+    matrix(const data_type& data):
+        m_main_diagonal_indices(get_main_diagonal_indices()),
+        m_data(data) {}
+
+    void identity() {
+        m_data.fill(0);
+        for (auto& idx : m_main_diagonal_indices) {
+            m_data[idx] = 1;
+        }
+    }
+
+    const matrix<value_type, size - 1>& submatrix(const size_t row, const size_t col) const {
+        using result_type = matrix<value_type, size - 1>;
+        using result_data_type = typename result_type::data_type;
+
+        result_data_type data;
+        data.fill(0);
+        /*
+        size_t k = 0;
+
+        for (size_t i = 0; i < dimensions; i++) {
+            for (size_t j = 0; j < dimensions; j++) {
+                if (i == row || j == col) {
+                    continue;
+                }
+                data[k++] = m_data.at(to_index(i, j));
+            }
+        }
+
+        return std::move(result_type{data});
+        */
+        for (size_t i = dimensions - 1; i--;) {
+            for (size_t j = dimensions - 1; j--;) {
+                data[to_index(i, j)] = m_data.at(to_index(i < row ? i : i + 1, j < col ? j : j + 1));
+            }
+        }
+
+        std::cerr << "[";
+        for (auto& item : data ) {
+            std::cerr << item << ", ";
+        }
+        std::cerr << "]\n";
+
+        return std::move(result_type{data});
+    }
+
+    value_type cofactor(const size_t row, const size_t col) const {
+        return ((row + col) % 2 ? -1 : 1) * submatrix(row, col).determinant();
+    }
+
+    value_type determinant() const {
+        return determinator<dimensions, value_type>::compute(*this);
+    }
+
+    const matrix& adjugate() const {
+        data_type data;
+        data.fill(0);
+
+        for (size_t row = 0; row < dimensions; row++) {
+            for (size_t col = 0; col < dimensions; col++) {
+                data[to_index(row, col)] = cofactor(row, col);
+            }
+        }
+        return std::move(matrix(data));
+    }
+
+    const matrix& operator*(const matrix& other) const {
+        data_type data;
+        data.fill(0);
+
+        for (size_t row = 0; row < dimensions; row++) {
+            for (size_t col = 0; col < dimensions; col++) {
+                for (size_t i = 0; i < dimensions; i++) {
+                    data[to_index(row, col)] += m_data.at(to_index(row, i)) * other.data().at(to_index(i, col));
+                }
+            }
+        }
+        return std::move(matrix(data));
+    }
+
+    const vector::vector<value_type, size>& operator*(const vector::vector<value_type, size>& vec) const {
+        typename vector::vector<value_type, size>::data_type data;
+        data.fill(0);
+
+        for (size_t row = 0; row < dimensions; row++) {
+            for (size_t col = 0; col < dimensions; col++) {
+                data[col] += m_data.at(to_index(row, col)) * vec.data().at(col);
+            }
+        }
+        return std::move(vector::vector<value_type, size>(data));
+    }
+
+    const data_type& data() const {
+        return m_data;
+    }
+
+    const value_type* raw_data() {
+        return m_data.data();
+    }
+
+//protected:
     using row_indices = std::array<size_t, dimensions>;
 
     size_t to_index(const size_t row, const size_t col) const {
@@ -30,58 +156,6 @@ protected:
 
     row_indices m_main_diagonal_indices;
     data_type   m_data;
-
-public:
-
-    matrix():
-        m_main_diagonal_indices(get_main_diagonal_indices()) {
-        identity();
-    }
-
-    matrix(const data_type& data):
-        m_main_diagonal_indices(get_main_diagonal_indices()),
-        m_data(data) {}
-
-    void identity() {
-        m_data.fill(.0f);
-        for (auto& idx : m_main_diagonal_indices) {
-            m_data[idx] = 1.0f;
-        }
-    }
-
-    const matrix& operator*(const matrix& other) const {
-        data_type data;
-        data.fill(.0f);
-
-        for (size_t row = 0; row < dimensions; row++) {
-            for (size_t col = 0; col < dimensions; col++) {
-                for (size_t i = 0; i < dimensions; i++) {
-                    data[to_index(row, col)] += m_data.at(to_index(row, i)) * other.data().at(to_index(i, col));
-                }
-            }
-        }
-        return std::move(matrix(data));
-    }
-
-    const vector::vector<value_type, size>& operator*(const vector::vector<value_type, size>& vec) const {
-        typename vector::vector<value_type, size>::data_type data;
-        data.fill(.0f);
-
-        for (size_t row = 0; row < dimensions; row++) {
-            for (size_t col = 0; col < dimensions; col++) {
-                data[col] += m_data.at(to_index(row, col)) * vec.data().at(col);
-            }
-        }
-        return std::move(vector::vector<value_type, size>(data));
-    }
-
-    const data_type& data() const {
-        return m_data;
-    }
-
-    const value_type* raw_data() {
-        return m_data.data();
-    }
 };
 
 using mat2 = matrix<float, 2>;
