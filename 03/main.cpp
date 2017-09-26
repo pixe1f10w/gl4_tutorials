@@ -230,17 +230,17 @@ int main (int argc, char* argv[]) {
 
     // update matrix
     last_position += elapsed_seconds * speed;
-    auto matrix = matrix::rotate_z(last_position)
-                * matrix::rotate_x(last_position)
-                * matrix::translate(vector::vec3({last_position, 0, 0}))
-                * matrix::scale(vector::vec3({last_position, last_position, 1}));
+    auto matrix = math::rotate_z(last_position)
+                * math::rotate_x(last_position)
+                * math::translate(vector::vec3({last_position, 0, 0}))
+                * math::scale(vector::vec3({last_position, last_position, 1}));
 
     // wipe the drawing surface
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, g_gl_width, g_gl_height);
 
     shader_program.use();
-    glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix.raw_data());
+    glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix.container().data());
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
