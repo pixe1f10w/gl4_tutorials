@@ -6,7 +6,7 @@
 #include <fstream>
 #include <map>
 
-#include <shared/logger.hpp>
+#include <common/logger.hpp>
 
 enum class gl_shader_kind {
     unknown = 0,

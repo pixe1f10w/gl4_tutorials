@@ -6,10 +6,10 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <shared/vector.hpp>
-#include <shared/matrix.hpp>
-#include <shared/logger.hpp>
-#include <shared/shader_manager.hpp>
+#include <common/vector.hpp>
+#include <common/matrix.hpp>
+#include <common/logger.hpp>
+#include <common/shader_manager.hpp>
 #include <config.hpp>
 
 common::logger g_log(PROJECT_VERSION, true);

@@ -1,5 +1,5 @@
 #include <deps/testing.h/testing.h>
-#include <shared/matrix.hpp>
+#include <common/matrix.hpp>
 #include <config.hpp>
 
 BEGIN_TEST()

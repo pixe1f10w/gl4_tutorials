@@ -5,8 +5,8 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <shared/logger.hpp>
-#include <shared/shader_manager.hpp>
+#include <common/logger.hpp>
+#include <common/shader_manager.hpp>
 #include <config.hpp>
 
 common::logger g_log(PROJECT_VERSION, true);
