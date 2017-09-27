@@ -21,7 +21,8 @@ endif
 glfwdep = dependency('glfw3')
 glewdep = dependency('glew')
 
-dependencies = [opengldep, glfwdep, glewdep]
+project_dependencies = [opengldep, glfwdep, glewdep]
 
+subdir('03')
 subdir('04')
 subdir('tests')
