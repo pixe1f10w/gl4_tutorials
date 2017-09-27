@@ -1,5 +1,6 @@
-#include "../deps/testing.h/testing.h"
-#include "../shared/matrix.hpp"
+#include <deps/testing.h/testing.h>
+#include <shared/matrix.hpp>
+#include <config.hpp>
 
 BEGIN_TEST()
     math::mat2f m1({1, 2, 3, 4});
