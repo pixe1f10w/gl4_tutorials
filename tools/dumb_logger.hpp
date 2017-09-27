@@ -19,7 +19,7 @@ class dumb_logger {
         m_warnings_count(0), m_errors_count(0), m_mirrored(mirror) {
         m_file.open(filename);
 
-        message(std::string("[INFO] starting build version ") + build_version + "...\n");
+        message(std::string("[INFO] starting build version '") + build_version + "'...\n");
     }
 
     ~dumb_logger() {

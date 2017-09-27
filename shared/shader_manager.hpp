@@ -197,11 +197,13 @@ class gl_shader_program {
 class gl_shader_loader {
     public:
 
-    gl_shader_loader(tools::dumb_logger& logger):
+    gl_shader_loader(tools::dumb_logger& logger, const std::string& root_path = ""):
+        m_root_path(root_path),
         m_logger(logger) {}
 
     gl_shader& from_file(const std::string& filepath, const std::string& alias = "") {
-        std::ifstream ifs(filepath);
+        const std::string fullpath = m_root_path.empty() ? filepath : m_root_path + "/" + filepath;
+        std::ifstream ifs(fullpath);
         std::string source;
         source.assign(std::istreambuf_iterator<char>(ifs),
                       std::istreambuf_iterator<char>());
@@ -211,9 +213,9 @@ class gl_shader_loader {
             return m_container.at(key);
         }
 
-        m_logger << "loaded_shader from '" << filepath.c_str() << "'\n'''\n" << source << "\n'''\n";
+        m_logger << "loading shader from '" << fullpath.c_str() << "'\n'''\n" << source << "\n'''\n";
 
-        gl_shader_kind kind = deduce_shader_kind(filepath);
+        gl_shader_kind kind = deduce_shader_kind(fullpath);
         if (kind == gl_shader_kind::unknown) {
             throw std::runtime_error("unsupported shader filename");
         }
@@ -252,5 +254,6 @@ class gl_shader_loader {
     }
 
     std::unordered_map<std::string, gl_shader> m_container;
+    std::string m_root_path;
     tools::dumb_logger& m_logger;
 };

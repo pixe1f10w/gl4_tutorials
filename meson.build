@@ -4,7 +4,7 @@ project('opengl tutorials', 'cpp', default_options: ['cpp_std=c++14'])
 version = run_command('git', ['log', '-1', '--format=%h']).stdout().strip()
 
 conf_data = configuration_data()
-conf_data.set_quoted('VERSION', version)
+conf_data.set_quoted('PROJECT_VERSION', version)
 conf_data.set_quoted('PROJECT_ROOT', meson.source_root())
 
 configure_file(output: 'config.hpp',
@@ -23,4 +23,5 @@ glewdep = dependency('glew')
 
 dependencies = [opengldep, glfwdep, glewdep]
 
+subdir('04')
 subdir('tests')
