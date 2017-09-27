@@ -5,10 +5,11 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "../tools/dumb_logger.hpp"
-#include "../shared/shader_manager.hpp"
+#include <tools/dumb_logger.hpp>
+#include <shared/shader_manager.hpp>
+#include <config.hpp>
 
-tools::dumb_logger g_log("unknown", true);
+tools::dumb_logger g_log(PROJECT_VERSION, true);
 int g_gl_width = 640;
 int g_gl_height = 480;
 bool g_gl_fullscreen = false;
@@ -176,11 +177,11 @@ int main (int argc, char* argv[]) {
   glEnableVertexAttribArray(1);
 
   // shaders loading
-  gl_shader_loader shader_loader(g_log);
+  gl_shader_loader shader_loader(g_log, PROJECT_ROOT);
   gl_shader_program shader_program;
   try {
-      shader_program << shader_loader("../shader.vert");
-      shader_program << shader_loader("../shader.frag");
+      shader_program << shader_loader("02/shader.vert");
+      shader_program << shader_loader("02/shader.frag");
   } catch (std::runtime_error& e) {
       g_log << tools::dumb_logger::message_type::error << e.what() << "\n";
   }
