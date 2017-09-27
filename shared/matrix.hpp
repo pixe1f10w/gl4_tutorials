@@ -161,18 +161,26 @@ using mat2f = matrix<2, float>;
 using mat3f = matrix<3, float>;
 using mat4f = matrix<4, float>;
 
+class identity4f : public mat4f {
+public:
+    identity4f():
+        mat4f() {
+        identity();
+    }
+};
+
 //TODO: template-based
-class translate : public mat4f {
+class translate : public identity4f {
 public:
     translate(const float x, const float y, const float z):
-        mat4f() {
+        identity4f() {
         identity();
         m_data[12] = x;
         m_data[13] = y;
         m_data[14] = z;
     }
     translate(const vector::vec3& vec):
-        mat4f() {
+        identity4f() {
         identity();
         m_data[12] = vec.data()[0];
         m_data[13] = vec.data()[1];
@@ -180,29 +188,26 @@ public:
     }
 };
 
-class scale : public mat4f {
+class scale : public identity4f {
 public:
     scale(const float x, const float y, const float z):
-        mat4f() {
-        identity();
+        identity4f() {
         m_data[0] = x;
         m_data[5] = y;
         m_data[10] = z;
     }
     scale(const vector::vec3& vec):
-        mat4f() {
-        identity();
+        identity4f() {
         m_data[0] = vec.data()[0];
         m_data[5] = vec.data()[1];
         m_data[10] = vec.data()[2];
     }
 };
 
-class rotate_x : public mat4f {
+class rotate_x : public identity4f {
 public:
     rotate_x(const float value):
-        mat4f() {
-        identity();
+        identity4f() {
         m_data[5] = cos(value);
         m_data[6] = sin(value);
         m_data[9] = -sin(value);
@@ -210,11 +215,10 @@ public:
     }
 };
 
-class rotate_y : public mat4f {
+class rotate_y : public identity4f {
 public:
     rotate_y(const float value):
-        mat4f() {
-        identity();
+        identity4f() {
         m_data[0] = cos(value);
         m_data[2] = -sin(value);
         m_data[8] = sin(value);
@@ -222,11 +226,10 @@ public:
     }
 };
 
-class rotate_z : public mat4f {
+class rotate_z : public identity4f {
 public:
     rotate_z(const float value):
-        mat4f() {
-        identity();
+        identity4f() {
         m_data[0] = cos(value);
         m_data[1] = sin(value);
         m_data[4] = -sin(value);
