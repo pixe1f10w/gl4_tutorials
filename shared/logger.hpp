@@ -4,9 +4,9 @@
 #include <fstream>
 #include <string>
 
-namespace tools {
+namespace common {
 
-class dumb_logger {
+class logger {
     public:
 
     enum class message_type {
@@ -15,14 +15,14 @@ class dumb_logger {
         notice
     };
 
-    explicit dumb_logger(const char *build_version, const bool mirror = false, const char* filename = "default.log"):
+    explicit logger(const char *build_version, const bool mirror = false, const char* filename = "default.log"):
         m_warnings_count(0), m_errors_count(0), m_mirrored(mirror) {
         m_file.open(filename);
 
         message(std::string("[INFO] starting build version '") + build_version + "'...\n");
     }
 
-    ~dumb_logger() {
+    ~logger() {
         message("[INFO] shutting down...\n");
         message(std::to_string(m_warnings_count) + " warnings\n");
         message(std::to_string(m_errors_count) + " errors\n");
@@ -36,40 +36,40 @@ class dumb_logger {
         m_mirrored = !m_mirrored;
     }
 
-    friend dumb_logger& operator<<(dumb_logger& logger, const message_type type) {
+    friend logger& operator<<(logger& log, const message_type type) {
         switch (type) {
-            case dumb_logger::message_type::error:
-                logger.message("[ERROR] ");
-                ++logger.m_errors_count;
+            case logger::message_type::error:
+                log.message("[ERROR] ");
+                ++log.m_errors_count;
                 break;
-            case dumb_logger::message_type::warning:
-                logger.message("[WARNING] ");
-                ++logger.m_warnings_count;
+            case logger::message_type::warning:
+                log.message("[WARNING] ");
+                ++log.m_warnings_count;
                 break;
             default:
-                logger.message("[NOTICE] ");
+                log.message("[NOTICE] ");
                 break;
         }
-        return logger;
+        return log;
     }
 
-    friend dumb_logger& operator<<(dumb_logger& logger, const char* text) {
-        logger.message(text);
-        return logger;
+    friend logger& operator<<(logger& log, const char* text) {
+        log.message(text);
+        return log;
     }
 
-    friend dumb_logger& operator<<(dumb_logger& logger, const unsigned char* text) {
-        logger.message(reinterpret_cast<const char*>(text));
-        return logger;
+    friend logger& operator<<(logger& log, const unsigned char* text) {
+        log.message(reinterpret_cast<const char*>(text));
+        return log;
     }
 
-    friend dumb_logger& operator<<(dumb_logger& logger, const std::string& text) {
-        logger.message(text.c_str());
-        return logger;
+    friend logger& operator<<(logger& log, const std::string& text) {
+        log.message(text.c_str());
+        return log;
     }
 
-    dumb_logger(const dumb_logger&) = delete;
-    dumb_logger& operator=(const dumb_logger&) = delete;
+    logger(const logger&) = delete;
+    logger& operator=(const logger&) = delete;
 
     private:
 
@@ -93,4 +93,4 @@ class dumb_logger {
     bool          m_mirrored;
 };
 
-} // ns tools
+} // ns common

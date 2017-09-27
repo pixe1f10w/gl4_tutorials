@@ -6,6 +6,8 @@
 #include <fstream>
 #include <map>
 
+#include <shared/logger.hpp>
+
 enum class gl_shader_kind {
     unknown = 0,
     fragment,
@@ -66,7 +68,7 @@ class gl_shader {
         return result == GL_TRUE;
     }
 
-    void dump_info_log(tools::dumb_logger& logger) const {
+    void dump_info_log(common::logger& logger) const {
         int max_length = 2048;
         int actual_length = 0;
         char log[2048];
@@ -126,7 +128,7 @@ class gl_shader_program {
         glBindAttribLocation(m_id, id, name.c_str());
     }
 
-    void dump_info_log(tools::dumb_logger& logger) const {
+    void dump_info_log(common::logger& logger) const {
         int max_length = 2048;
         int actual_length = 0;
         char log[2048];
@@ -134,7 +136,7 @@ class gl_shader_program {
         logger << "program info log for GL index " << std::to_string(m_id) << ":\n" << log << "\n";
     }
 
-    void dump_details(tools::dumb_logger& logger) const {
+    void dump_details(common::logger& logger) const {
         logger << "-----------------------------\ninformation for shader program " << std::to_string(m_id) << ":\n";
         int params = -1;
         glGetProgramiv(m_id, GL_LINK_STATUS, &params);
@@ -197,7 +199,7 @@ class gl_shader_program {
 class gl_shader_loader {
     public:
 
-    gl_shader_loader(tools::dumb_logger& logger, const std::string& root_path = ""):
+    gl_shader_loader(common::logger& logger, const std::string& root_path = ""):
         m_root_path(root_path),
         m_logger(logger) {}
 
@@ -255,5 +257,5 @@ class gl_shader_loader {
 
     std::unordered_map<std::string, gl_shader> m_container;
     std::string m_root_path;
-    tools::dumb_logger& m_logger;
+    common::logger& m_logger;
 };
