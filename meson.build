@@ -23,6 +23,7 @@ glewdep = dependency('glew')
 
 project_dependencies = [opengldep, glfwdep, glewdep]
 
+subdir('01')
 subdir('02')
 subdir('03')
 subdir('04')

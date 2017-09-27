@@ -1,0 +1,53 @@
+[INFO] starting build version 'e469b41'...
+Starting GLFW: 3.0.4 X11 GLX glXGetProcAddress clock_gettime /dev/js shared
+Renderer: Mesa DRI Intel(R) Ivybridge Mobile 
+OpenGL version supported 3.3 (Core Profile) Mesa 10.4.7
+----------------------------------------
+GL context parameters:
+GL_STEREO == 0
+GL_MAX_TEXTURE_SIZE == 8192
+GL_MAX_VIEWPORT_DIMS == 16384, 16384
+GL_MAX_CUBE_MAP_TEXTURE_SIZE == 8192
+GL_MAX_DRAW_BUFFERS == 8
+GL_MAX_VERTEX_ATTRIBS == 16
+GL_MAX_TEXTURE_IMAGE_UNITS == 16
+GL_MAX_FRAGMENT_UNIFORM_COMPONENTS == 16384
+GL_MAX_VERTEX_UNIFORM_COMPONENTS == 16384
+GL_MAX_VARYING_FLOATS == 128
+GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS == 16
+GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS == 48
+----------------------------------------
+loading shader from '/home/iceman/stuff/study/opengl4/gl4_tutorials/01/shader.vert'
+'''
+#version 330
+in vec3 vp;
+void main() {
+  gl_Position = vec4(vp, 1.0);
+}
+
+'''
+shader 2 compiled successfully
+loading shader from '/home/iceman/stuff/study/opengl4/gl4_tutorials/01/shader.frag'
+'''
+#version 330
+uniform vec4 input_color;
+out vec4 frag_color;
+void main() {
+  frag_color = input_color;
+}
+
+'''
+shader 3 compiled successfully
+-----------------------------
+information for shader program 1:
+GL_LINK_STATUS = 1
+GL_ATTACHED_SHADERS = 2
+GL_ACTIVE_ATTRIBUTES = 1
+ 0) type: vec3 name: vp location: 0
+GL_ACTIVE_UNIFORMS = 1
+ 0) type: vec4 name: input_color location: 0
+-----------------------------
+program 1 GL_VALIDATE_STATUS = 1
+[INFO] shutting down...
+0 warnings
+0 errors
