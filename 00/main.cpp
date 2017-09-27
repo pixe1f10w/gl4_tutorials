@@ -4,13 +4,15 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <config.hpp>
 
 const char* load_shader(const std::string& filepath) {
-  std::ifstream ifs(filepath);
+  const std::string& fullpath = std::string(PROJECT_ROOT) + std::string("/") + filepath;
+  std::ifstream ifs(fullpath);
   std::string shader;
   shader.assign(std::istreambuf_iterator<char>(ifs),
                 std::istreambuf_iterator<char>());
-  std::cout << "loaded shader from '" << filepath << "':\n'''\n" << shader << "'''\n";
+  std::cout << "loaded shader from '" << fullpath << "':\n'''\n" << shader << "'''\n";
   return shader.c_str();
 }
 
@@ -93,25 +95,25 @@ int main () {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
   // shaders loading
-  const char* vertex_shader1 = load_shader("../shader1.vert");
+  const char* vertex_shader1 = load_shader("00/shader1.vert");
 
   GLuint vs1 = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vs1, 1, &vertex_shader1, nullptr);
   glCompileShader(vs1);
 
-  const char* vertex_shader2 = load_shader("../shader2.vert");
+  const char* vertex_shader2 = load_shader("00/shader2.vert");
 
   GLuint vs2 = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vs2, 1, &vertex_shader2, nullptr);
   glCompileShader(vs2);
 
-  const char* fragment_shader1 = load_shader("../shader1.frag");
+  const char* fragment_shader1 = load_shader("00/shader1.frag");
 
   GLuint fs1 = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fs1, 1, &fragment_shader1, nullptr);
   glCompileShader(fs1);
 
-  const char* fragment_shader2 = load_shader("../shader2.frag");
+  const char* fragment_shader2 = load_shader("00/shader2.frag");
 
   GLuint fs2 = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fs2, 1, &fragment_shader2, nullptr);

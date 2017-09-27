@@ -1,12 +1,1 @@
-project('tutorial00', 'cpp', default_options: ['cpp_std=c++11'])
-
-if (build_machine.system() == 'windows')
-  opengldep = dependency('opengl32')
-else
-  opengldep = dependency('GL')
-endif
-
-glfwdep = dependency('glfw3')
-glewdep = dependency('glew')
-
-executable('tutorial00', 'main.cpp', dependencies: [opengldep, glfwdep, glewdep])
+executable('tutorial00', 'main.cpp', dependencies: project_dependencies, include_directories: project_directory)
