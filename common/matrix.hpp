@@ -30,7 +30,6 @@ template <size_t dimensions, typename value_type>
 class matrix {
 
 public:
-    //using container_type = std::array<value_type, dimensions * dimensions>;
     using container_type = math::linear_square_array<dimensions, value_type>;
 #if 0
     matrix():
@@ -56,7 +55,6 @@ public:
 #else
         for (size_t i = dimensions; i--;) {
             for (size_t j = dimensions; j--;) {
-                //m_data[to_index(i, j)] = (i == j);
                 m_data[{i, j}] = (i == j);
             }
         }
@@ -68,7 +66,6 @@ public:
         using result_container_type = typename result_type::container_type;
 
         result_container_type data;
-        //data.fill(0);
 #if 0
         size_t k = 0;
 
@@ -77,13 +74,12 @@ public:
                 if (i == row || j == col) {
                     continue;
                 }
-                data[k++] = m_data.at(to_index(i, j));
+                data[k++] = m_data.at({i, j});
             }
         }
 #else
         for (size_t i = dimensions - 1; i--;) {
             for (size_t j = dimensions - 1; j--;) {
-                //data[to_index(i, j)] = m_data.at(to_index(i < row ? i : i + 1, j < col ? j : j + 1));
                 data[{i, j}] = m_data.at({i < row ? i : i + 1, j < col ? j : j + 1});
             }
         }
@@ -101,11 +97,9 @@ public:
 
     const matrix adjugate() const {
         container_type data;
-        //data.fill(0);
 
         for (size_t row = 0; row < dimensions; row++) {
             for (size_t col = 0; col < dimensions; col++) {
-                //data[to_index(row, col)] = cofactor(row, col);
                 data[{row, col}] = cofactor(row, col);
             }
         }
@@ -114,12 +108,10 @@ public:
 
     const matrix operator*(const matrix& other) const {
         container_type data;
-        //data.fill(0);
 
         for (size_t row = 0; row < dimensions; row++) {
             for (size_t col = 0; col < dimensions; col++) {
                 for (size_t i = 0; i < dimensions; i++) {
-                    //data[to_index(row, col)] += m_data.at(to_index(row, i)) * other.container().at(to_index(i, col));
                     data[{row, col}] += m_data.at({row, i}) * other.m_data.at({i, col});
                 }
             }
@@ -128,17 +120,14 @@ public:
     }
 
     bool operator==(const matrix& other) const {
-        //return m_data == other.container();
         return m_data == other.m_data;
     }
 
     const vector::vector<value_type, dimensions> operator*(const vector::vector<value_type, dimensions>& vec) const {
         typename vector::vector<value_type, dimensions>::container_type data;
-        //data.fill(0);
 
         for (size_t row = 0; row < dimensions; row++) {
             for (size_t col = 0; col < dimensions; col++) {
-                //data[col] += m_data.at(to_index(row, col)) * vec.data().at(col);
                 data[col] += m_data.at({row, col}) * vec.data().at(col);
             }
         }
@@ -150,10 +139,6 @@ public:
     }
 /*
     using row_indices = std::array<size_t, dimensions>;
-
-    size_t to_index(const size_t row, const size_t col) const {
-        return row * dimensions + col;
-    }
 
     //TODO: constexpr somehow?
     row_indices get_main_diagonal_indices() const {
