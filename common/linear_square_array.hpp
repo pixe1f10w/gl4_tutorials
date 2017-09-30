@@ -71,5 +71,14 @@ private:
     container_type m_container;
 };
 
+template <size_t width, class value_type> std::ostream& operator<<(std::ostream& out, const linear_square_array<width, value_type>& rhs) {
+    out << "[";
+    for (size_t i = 0; i < width * width; i++) {
+        out << (i ? ", " : "") << rhs.at(i);
+    }
+    out << "]";
+    return out;
+}
+
 } // ns math
 

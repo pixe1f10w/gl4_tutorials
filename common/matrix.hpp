@@ -48,7 +48,6 @@ public:
 
     void identity() {
 #if 0
-        m_data.fill(0);
         for (auto& idx : m_main_diagonal_indices) {
             m_data[idx] = 1;
         }
@@ -106,6 +105,14 @@ public:
         return matrix(data);
     }
 
+    void transpose() {
+        for (size_t row = 0; row < dimensions - 1; row++) {
+            for (size_t col = dimensions - 1; col > row; col--) {
+                m_data.swap({row, col}, {col, row});
+            }
+        }
+    }
+
     const matrix operator*(const matrix& other) const {
         container_type data;
 
@@ -153,6 +160,11 @@ public:
 */
     container_type   m_data;
 };
+
+template <size_t dimensions, class value_type> std::ostream& operator<<(std::ostream& out, const matrix<dimensions, value_type>& rhs) {
+    out << rhs.container();
+    return out;
+}
 
 using mat2f = matrix<2, float>;
 using mat3f = matrix<3, float>;
