@@ -3,55 +3,10 @@
 #include <array>
 #include <cassert>
 #include <math.h>
+#include "linear_square_array.hpp"
 #include "vector.hpp"
 
 namespace math {
-
-template <size_t width, typename value_type>
-class linear_square_array {
-public:
-    static constexpr size_t container_size = width * width;
-    using container_type = std::array<value_type, container_size>;
-    using index_pair = std::pair<size_t, size_t>;
-
-    linear_square_array() = default;
-    linear_square_array(const container_type& container):
-        m_container(container) {}
-
-    value_type& operator[](const index_pair& pair) {
-        return m_container[to_linear_index(pair)];
-    }
-
-    value_type& operator[](const size_t linear_index) {
-        assert(linear_index < container_size);
-        return m_container[linear_index];
-    }
-
-    bool operator==(const linear_square_array& other) const {
-        return m_container == other.m_container;
-    }
-
-    void swap(const index_pair& first, const index_pair& second) {
-        value_type temp = (*this)[first];
-        (*this)[first]  = (*this)[second];
-        (*this)[second] = temp;
-    }
-
-    value_type* raw() {
-        return m_container.data();
-    }
-
-private:
-    size_t to_linear_index(const size_t row, const size_t col) const {
-        return row * width + col;
-    }
-
-    size_t to_linear_index(const index_pair& pair) const {
-        return to_linear_index(pair.first, pair.second);
-    }
-
-    container_type m_container;
-};
 
 template <size_t dimensions, typename value_type> class matrix;
 
@@ -75,6 +30,7 @@ struct determinator<1, value_type> {
 
 template <size_t dimensions, typename value_type>
 class matrix {
+
 public:
     using container_type = std::array<value_type, dimensions * dimensions>;
 #if 0

@@ -9,12 +9,4 @@ BEGIN_TEST()
     auto& sm = m1.submatrix(0, 0);
     EXPECT_TRUE(sm == sm);
     EXPECT_EQUAL(m1.determinant(), -2);
-
-    math::linear_square_array<3, uint8_t> data({
-        1, 2, 3,
-        4, 5, 6,
-        7, 8, 9
-    });
-    data.swap({0, 0}, {2, 2});
-    EXPECT_TRUE(data == math::linear_square_array<3, uint8_t>({9, 2, 3, 4, 5, 6, 7, 8, 1}));
 END_TEST()

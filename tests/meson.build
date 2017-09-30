@@ -1,2 +1,5 @@
-matrix_test = executable('matrix_test', 'matrix_test.cpp', include_directories: project_directory)
-test('matrix test', matrix_test)
+test_linear_square_array = executable('test_linear_square_array', 'test_linear_square_array.cpp', include_directories: project_directory)
+test_matrix = executable('test_matrix', 'test_matrix.cpp', include_directories: project_directory)
+
+test('linear square array', test_linear_square_array)
+test('matrix', test_matrix)
