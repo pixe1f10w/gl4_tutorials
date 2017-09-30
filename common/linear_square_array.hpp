@@ -2,8 +2,6 @@
 
 #include <array>
 #include <cassert>
-#include <math.h>
-#include "vector.hpp"
 
 namespace math {
 
@@ -15,7 +13,9 @@ public:
     using container_type = std::array<value_type, container_size>;
     using index_pair = std::pair<size_t, size_t>;
 
-    linear_square_array() = default;
+    linear_square_array() {
+        m_container.fill(0);
+    }
     // TODO: rewrite without copying (std::forward somehow)
     linear_square_array(std::initializer_list<value_type> list) {
         assert(m_container.size() == list.size());
@@ -55,7 +55,7 @@ public:
         (*this)[second] = temp;
     }
 
-    value_type* raw() {
+    const value_type* raw() const {
         return m_container.data();
     }
 
