@@ -9,7 +9,7 @@ BEGIN_TEST()
         7, 8, 9
     };
     // index conversion
-    EXPECT_TRUE(data[{1, 1}] == data[4]);
+    EXPECT_EQUAL(data[{1, 1}], data[4]);
 
     data.swap({0, 0}, {2, 2});
     lsa3 after_swap = {
@@ -17,5 +17,5 @@ BEGIN_TEST()
         4, 5, 6,
         7, 8, 1
     };
-    EXPECT_TRUE(data == after_swap);
+    EXPECT_EQUAL(data, after_swap);
 END_TEST()

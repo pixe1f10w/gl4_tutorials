@@ -6,6 +6,12 @@
 
 namespace math {
 
+class matrix_error : public std::runtime_error {
+public:
+    matrix_error(const std::string& error):
+        std::runtime_error{error} {}
+};
+
 template <size_t dimensions, typename value_type> class matrix;
 
 template<size_t dimensions, typename value_type>
@@ -31,33 +37,21 @@ class matrix {
 
 public:
     using container_type = math::linear_square_array<dimensions, value_type>;
-#if 0
-    matrix():
-        m_main_diagonal_indices(get_main_diagonal_indices()) {
-    }
-#else
+
     matrix() = default;
-#endif
-
     matrix(std::initializer_list<value_type> list):
-        m_data(list) {}
-
+        m_data{list} {}
     matrix(const container_type& data):
-        //m_main_diagonal_indices(get_main_diagonal_indices()),
-        m_data(data) {}
+        m_data{data} {}
 
-    void identity() {
-#if 0
-        for (auto& idx : m_main_diagonal_indices) {
-            m_data[idx] = 1;
-        }
-#else
+    const matrix identity() const {
+        container_type data;
         for (size_t i = dimensions; i--;) {
             for (size_t j = dimensions; j--;) {
-                m_data[{i, j}] = (i == j);
+                data[{i, j}] = (i == j);
             }
         }
-#endif
+        return matrix{data};
     }
 
     const matrix<dimensions - 1, value_type> submatrix(const size_t row, const size_t col) const {
@@ -65,7 +59,7 @@ public:
         using result_container_type = typename result_type::container_type;
 
         result_container_type data;
-#if 0
+#if 1
         size_t k = 0;
 
         for (size_t i = 0; i < dimensions; i++) {
@@ -102,32 +96,40 @@ public:
                 data[{row, col}] = cofactor(row, col);
             }
         }
-        return matrix(data);
+        // TODO: better way
+        return matrix{data}.transpose();
     }
 
-    void transpose() {
+    const matrix invert() const {
+        value_type det = determinant();
+        if (det == 0) {
+            throw matrix_error("matrix with determinant == 0 cannot be inverted");
+        }
+        return adjugate() * (1 / det);
+    }
+
+    const matrix transpose() {
+        container_type data(m_data);
+
         for (size_t row = 0; row < dimensions - 1; row++) {
             for (size_t col = dimensions - 1; col > row; col--) {
-                m_data.swap({row, col}, {col, row});
+                data.swap({row, col}, {col, row});
             }
         }
+        return matrix{data};
     }
 
-    const matrix operator*(const matrix& other) const {
-        container_type data;
+    bool operator==(const matrix& rhs) const {
+        return m_data == rhs.container();
+    }
 
-        for (size_t row = 0; row < dimensions; row++) {
-            for (size_t col = 0; col < dimensions; col++) {
-                for (size_t i = 0; i < dimensions; i++) {
-                    data[{row, col}] += m_data.at({row, i}) * other.m_data.at({i, col});
-                }
-            }
+    const matrix operator*(const value_type rhs) const {
+        container_type data(m_data);
+
+        for (size_t index = 0; index < dimensions * dimensions; index++) {
+            data[index] *= rhs;
         }
-        return matrix(data);
-    }
-
-    bool operator==(const matrix& other) const {
-        return m_data == other.m_data;
+        return matrix{data};
     }
 
     const vector::vector<value_type, dimensions> operator*(const vector::vector<value_type, dimensions>& vec) const {
@@ -138,26 +140,28 @@ public:
                 data[col] += m_data.at({row, col}) * vec.data().at(col);
             }
         }
-        return vector::vector<value_type, dimensions>(data);
+        return vector::vector<value_type, dimensions>{data};
+    }
+
+    const matrix operator*(const matrix& rhs) const {
+        container_type data;
+
+        for (size_t row = 0; row < dimensions; row++) {
+            for (size_t col = 0; col < dimensions; col++) {
+                for (size_t i = 0; i < dimensions; i++) {
+                    data[{row, col}] += m_data.at({row, i}) * rhs.container().at({i, col});
+                }
+            }
+        }
+        return matrix{data};
     }
 
     const container_type& container() const {
         return m_data;
     }
-/*
-    using row_indices = std::array<size_t, dimensions>;
 
-    //TODO: constexpr somehow?
-    row_indices get_main_diagonal_indices() const {
-        row_indices indices;
-        for (size_t i = 0; i < dimensions; i++) {
-            indices[i] = to_index(i, i);
-        }
-        return std::move(indices);
-    }
+protected:
 
-    row_indices m_main_diagonal_indices;
-*/
     container_type   m_data;
 };
 
@@ -173,9 +177,7 @@ using mat4f = matrix<4, float>;
 class identity4f : public mat4f {
 public:
     identity4f():
-        mat4f() {
-        identity();
-    }
+        mat4f(mat4f::identity()) {}
 };
 
 //TODO: template-based
@@ -183,14 +185,12 @@ class translate : public identity4f {
 public:
     translate(const float x, const float y, const float z):
         identity4f() {
-        identity();
         m_data[12] = x;
         m_data[13] = y;
         m_data[14] = z;
     }
     translate(const vector::vec3& vec):
         identity4f() {
-        identity();
         m_data[12] = vec.data()[0];
         m_data[13] = vec.data()[1];
         m_data[14] = vec.data()[2];
